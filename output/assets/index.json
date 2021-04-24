@@ -3,6 +3,9 @@
     "bitmaps" : [
 
         {"name": "player",  "path": "player.png"},
+        {"name": "playerBlack",  "path": "player_black.png"},
+        {"name": "enemiesBlack",  "path": "enemies_black.png"},
+        {"name": "background",  "path": "background.png"},
         {"name": "enemies",  "path": "enemies.png"}
     ]
 }

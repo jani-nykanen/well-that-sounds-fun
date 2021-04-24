@@ -3,7 +3,11 @@ import { clamp } from "./core/mathext.js";
 import { Sprite } from "./core/sprite.js";
 import { Vector2 } from "./core/vector.js";
 import { GameObject } from "./gameobject.js";
-const ENEMY_TYPES = () => [Duck, Dog, Fly, Cat, Spikeball];
+const ENEMY_TYPES = () => [
+    Cat, Fly, Mushroom,
+    Dog, Duck,
+    Spikeball
+];
 export const getEnemyType = (index) => ENEMY_TYPES()[clamp(index, 0, ENEMY_TYPES().length - 1) | 0];
 export const getRandomEnemyType = () => getEnemyType((Math.random() * ENEMY_TYPES().length) | 0);
 export class Enemy extends GameObject {
@@ -35,10 +39,19 @@ export class Enemy extends GameObject {
             this.forceKill();
         }
     }
+    baseDraw(c, bmp, offsetx = 0, offsety = 0) {
+        c.drawScaledSprite(this.spr, bmp, offsetx + this.pos.x - this.spr.width / 2 * this.scale, offsety + this.pos.y - this.spr.height / 2 * this.scale, this.spr.width * this.scale, this.spr.height * this.scale, this.flip);
+    }
     draw(c) {
         if (!this.exist)
             return;
-        c.drawScaledSprite(this.spr, c.getBitmap("enemies"), this.pos.x - this.spr.width / 2 * this.scale, this.pos.y - this.spr.height / 2 * this.scale, this.spr.width * this.scale, this.spr.height * this.scale, this.flip);
+        this.baseDraw(c, c.getBitmap("enemies"));
+    }
+    drawShadow(c) {
+        const SHADOW_OFFSET = 12;
+        if (!this.exist)
+            return;
+        this.baseDraw(c, c.getBitmap("enemiesBlack"), SHADOW_OFFSET, SHADOW_OFFSET);
     }
     kill(ev) {
         if (this.dying)
@@ -122,20 +135,46 @@ export class Cat extends Enemy {
         this.flip = this.animDirection == 0 ? Flip.None : Flip.Horizontal;
     }
 }
+export class Mushroom extends Enemy {
+    constructor(globalSpeed, x, y) {
+        super(globalSpeed, x, y, 5);
+        this.scale = 0.60;
+        this.hitbox = new Vector2(64, 48);
+    }
+    updateAI(ev) {
+        this.spr.animate(this.spr.getRow(), 0, 3, 8, ev.step);
+    }
+}
 export class Spikeball extends Enemy {
     constructor(globalSpeed, x, y) {
         super(globalSpeed, x, y, 4, 4);
         this.rotationDir = Math.random() > 0.5 ? 1 : -1;
         this.angle = Math.random() * Math.PI * 2;
         this.hitbox = new Vector2(40, 40);
+        this.target.x = this.rotationDir * this.globalSpeed;
     }
     updateAI(ev) {
         const ROTATION_SPEED = 0.025;
-        this.angle = (this.angle + this.rotationDir * this.globalSpeed * ROTATION_SPEED * ev.step) % (Math.PI * 2);
+        if ((this.rotationDir < 0 && this.pos.x < this.spr.width / 2 * this.scale) ||
+            (this.rotationDir > 0 && this.pos.x > 540 - this.spr.width / 2 * this.scale)) {
+            this.rotationDir *= -1;
+            this.target.x *= -1;
+        }
+        this.angle =
+            (this.angle + this.rotationDir * this.globalSpeed * ROTATION_SPEED * ev.step) % (Math.PI * 2);
+    }
+    baseDraw(c, bmp, offsetx = 0, offsety = 0) {
+        c.drawRotatedScaledBitmapRegion(bmp, 1024, 1024, 256, 256, offsetx + this.pos.x, offsety + this.pos.y, this.spr.width * this.scale, this.spr.height * this.scale, this.angle, this.spr.width / 2, this.spr.height / 2);
     }
     draw(c) {
         if (!this.exist)
             return;
-        c.drawRotatedScaledBitmapRegion(c.getBitmap("enemies"), 1024, 1024, 256, 256, this.pos.x, this.pos.y, this.spr.width * this.scale, this.spr.height * this.scale, this.angle, this.spr.width / 2, this.spr.height / 2);
+        this.baseDraw(c, c.getBitmap("enemies"));
+    }
+    drawShadow(c) {
+        const SHADOW_OFFSET = 12;
+        if (!this.exist)
+            return;
+        this.baseDraw(c, c.getBitmap("enemiesBlack"), SHADOW_OFFSET, SHADOW_OFFSET);
     }
 }

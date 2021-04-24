@@ -6,7 +6,10 @@ import { Vector2 } from "./core/vector.js";
 import { GameObject } from "./gameobject.js";
 
 
-const ENEMY_TYPES = () : Array<Function> => [Duck, Dog, Fly, Cat, Spikeball];
+const ENEMY_TYPES = () : Array<Function> => [
+    Cat, Fly, Mushroom,
+    Dog, Duck,  
+    Spikeball];
 
 export const getEnemyType = (index : number) : Function => ENEMY_TYPES()[clamp(index, 0, ENEMY_TYPES().length-1) | 0];
 
@@ -76,15 +79,31 @@ export class Enemy extends GameObject {
     }
 
 
+    protected baseDraw(c : Canvas, bmp : HTMLImageElement, offsetx = 0, offsety = 0) {
+
+        c.drawScaledSprite(this.spr, bmp,
+            offsetx + this.pos.x - this.spr.width/2 * this.scale, 
+            offsety + this.pos.y - this.spr.height/2 * this.scale,
+            this.spr.width*this.scale,
+            this.spr.height*this.scale, this.flip);
+    }
+
+
     public draw(c : Canvas) {
 
         if (!this.exist) return;
 
-        c.drawScaledSprite(this.spr, c.getBitmap("enemies"),
-            this.pos.x - this.spr.width/2 * this.scale,
-            this.pos.y - this.spr.height/2 * this.scale,
-            this.spr.width * this.scale,
-            this.spr.height * this.scale, this.flip);
+        this.baseDraw(c, c.getBitmap("enemies"));
+    }
+
+
+    public drawShadow(c : Canvas) {
+
+        const SHADOW_OFFSET = 12;
+
+        if (!this.exist) return;
+
+        this.baseDraw(c, c.getBitmap("enemiesBlack"), SHADOW_OFFSET, SHADOW_OFFSET);
     }
 
 
@@ -207,7 +226,6 @@ export class Fly extends Enemy {
 }
 
 
-
 export class Cat extends Enemy {
 
 
@@ -244,6 +262,25 @@ export class Cat extends Enemy {
 }
 
 
+export class Mushroom extends Enemy {
+
+
+    constructor(globalSpeed : number, x : number, y : number) {
+
+        super(globalSpeed, x, y, 5);
+
+        this.scale = 0.60;
+
+        this.hitbox = new Vector2(64, 48);
+    }
+
+
+    protected updateAI(ev : GameEvent) {
+
+        this.spr.animate(this.spr.getRow(), 0, 3, 8, ev.step);
+    }
+}
+
 
 export class Spikeball extends Enemy {
 
@@ -260,6 +297,8 @@ export class Spikeball extends Enemy {
         this.angle = Math.random() * Math.PI * 2;
 
         this.hitbox = new Vector2(40, 40);
+
+        this.target.x = this.rotationDir * this.globalSpeed;
     }
 
 
@@ -267,7 +306,28 @@ export class Spikeball extends Enemy {
 
         const ROTATION_SPEED = 0.025;
 
-        this.angle = (this.angle + this.rotationDir * this.globalSpeed * ROTATION_SPEED * ev.step) % (Math.PI * 2);
+
+        if ((this.rotationDir < 0 && this.pos.x < this.spr.width/2*this.scale) ||
+            (this.rotationDir > 0 && this.pos.x > 540 - this.spr.width/2*this.scale)) {
+
+            this.rotationDir *= -1;
+            this.target.x *= -1;
+        }
+
+        this.angle = 
+            (this.angle + this.rotationDir * this.globalSpeed * ROTATION_SPEED * ev.step) % (Math.PI * 2);
+    }
+
+
+    protected baseDraw(c : Canvas, bmp : HTMLImageElement, offsetx = 0, offsety = 0) {
+
+        c.drawRotatedScaledBitmapRegion(bmp,
+            1024, 1024, 256, 256, 
+            offsetx + this.pos.x,
+            offsety + this.pos.y,
+            this.spr.width * this.scale,
+            this.spr.height * this.scale,
+            this.angle, this.spr.width/2, this.spr.height/2);
     }
 
 
@@ -275,13 +335,18 @@ export class Spikeball extends Enemy {
 
         if (!this.exist) return;
 
-        c.drawRotatedScaledBitmapRegion(c.getBitmap("enemies"),
-            1024, 1024, 256, 256, 
-            this.pos.x,
-            this.pos.y,
-            this.spr.width * this.scale,
-            this.spr.height * this.scale,
-            this.angle, this.spr.width/2, this.spr.height/2);
+        this.baseDraw(c, c.getBitmap("enemies"));
     }
+
+
+    public drawShadow(c : Canvas) {
+
+        const SHADOW_OFFSET = 12;
+
+        if (!this.exist) return;
+
+        this.baseDraw(c, c.getBitmap("enemiesBlack"), SHADOW_OFFSET, SHADOW_OFFSET);
+    }
+
 }
 

@@ -1,7 +1,36 @@
 import { Sprite } from "./core/sprite.js";
 import { State } from "./core/types.js";
 import { Vector2 } from "./core/vector.js";
-import { boxOverlay, GameObject } from "./gameobject.js";
+import { boxOverlay, ExistingObject, GameObject, nextObject } from "./gameobject.js";
+class Ghost extends ExistingObject {
+    constructor() {
+        super();
+        this.exist = false;
+    }
+    spawn(pos, scale, time, spr) {
+        this.pos = pos.clone();
+        this.timer = time;
+        this.maxTime = time;
+        this.scale = scale;
+        this.spr = new Sprite(spr.width, spr.height);
+        this.spr.setFrame(spr.getColumn(), spr.getRow());
+        this.exist = true;
+    }
+    update(ev) {
+        if (!this.exist)
+            return;
+        if ((this.timer -= ev.step) <= 0) {
+            this.exist = false;
+        }
+    }
+    draw(c, bmp) {
+        if (!this.exist)
+            return;
+        c.setGlobalAlpha(this.timer / this.maxTime);
+        c.drawScaledSprite(this.spr, bmp, this.pos.x - this.spr.width / 2 * this.scale, this.pos.y - this.spr.height / 2 * this.scale, this.spr.width * this.scale, this.spr.height * this.scale);
+        c.setGlobalAlpha();
+    }
+}
 export class Player extends GameObject {
     constructor(x, y) {
         super(x, y);
@@ -11,16 +40,18 @@ export class Player extends GameObject {
         this.jumpTimer = 0;
         this.flapping = false;
         this.flapTimer = Player.FLAP_TIME;
+        this.ghosts = new Array();
+        this.ghostTimer = 0;
         this.friction = new Vector2(0.5, 0.5);
-        this.hitbox = new Vector2(64, 96);
+        this.hitbox = new Vector2(64, 80);
     }
     control(ev) {
         const BASE_GRAVITY = 6.0;
         const BASE_SPEED = 4.0;
         const DIVE_SPEED = 16.0;
-        const JUMP_SPEED = -10.0;
+        const JUMP_SPEED = -9.0;
         const FLAP_TARGET = -4.0;
-        const BONUS_JUMP_TIME = 8;
+        const BONUS_JUMP_TIME = 12;
         this.target.y = BASE_GRAVITY;
         this.target.x = BASE_SPEED * ev.getStick().x;
         let fire1 = ev.getAction("fire1");
@@ -63,6 +94,8 @@ export class Player extends GameObject {
         else {
             // Dive
             if (ev.downPress()) {
+                if (this.diving)
+                    this.ghostTimer = 0;
                 this.diving = true;
             }
             if (this.diving) {
@@ -96,19 +129,53 @@ export class Player extends GameObject {
             frame = 1;
         this.spr.setFrame(frame, 0);
     }
+    updateGhosts(ev) {
+        const GHOST_SPAWN_TIME = 3;
+        const GHOST_EXIST_TIME = 15;
+        if (this.diving) {
+            if ((this.ghostTimer -= ev.step) <= 0) {
+                this.ghostTimer += GHOST_SPAWN_TIME;
+                nextObject(this.ghosts, Ghost)
+                    .spawn(this.pos, this.scale, GHOST_EXIST_TIME, this.spr);
+            }
+        }
+        for (let g of this.ghosts) {
+            g.update(ev);
+        }
+    }
     updateLogic(ev) {
         this.control(ev);
         this.animate(ev);
+        this.updateGhosts(ev);
+        if (this.speed.x < 0 && this.pos.x < this.hitbox.x / 2) {
+            this.speed.x = 0;
+            this.pos.x = this.hitbox.x / 2;
+        }
+        else if (this.speed.x > 0 && this.pos.x > 540 - this.hitbox.x / 2) {
+            this.speed.x = 0;
+            this.pos.x = 540 - this.hitbox.x / 2;
+        }
         // TEMP
         if (this.pos.y > 720 + this.spr.height / 2 * this.scale) {
             this.pos = new Vector2(270, 64);
         }
     }
+    baseDraw(c, bmp, offsetx = 0, offsety = 0) {
+        c.drawScaledSprite(this.spr, bmp, offsetx + this.pos.x - this.spr.width / 2 * this.scale, offsety + this.pos.y - this.spr.height / 2 * this.scale, this.spr.width * this.scale, this.spr.height * this.scale);
+    }
     draw(c) {
-        c.drawScaledSprite(this.spr, c.getBitmap("player"), this.pos.x - this.spr.width / 2 * this.scale, this.pos.y - this.spr.height / 2 * this.scale, this.spr.width * this.scale, this.spr.height * this.scale);
+        for (let g of this.ghosts) {
+            g.draw(c, c.getBitmap("player"));
+        }
+        this.baseDraw(c, c.getBitmap("player"));
+    }
+    drawShadow(c) {
+        const SHADOW_OFFSET = 12;
+        this.baseDraw(c, c.getBitmap("playerBlack"), SHADOW_OFFSET, SHADOW_OFFSET);
     }
     enemyCollision(e, ev) {
         const JUMP_TIME = 8;
+        const DIVE_BONUS = 4;
         const JUMP_EPS = -0.5;
         let hbox;
         if (!e.doesExist() || e.isDying() || this.dying)
@@ -118,6 +185,9 @@ export class Player extends GameObject {
             if (this.speed.y > JUMP_EPS) {
                 this.jumpTimer = JUMP_TIME;
                 e.kill(ev);
+                if (this.diving) {
+                    this.jumpTimer += DIVE_BONUS;
+                }
                 this.flapTimer = Player.FLAP_TIME;
                 this.flapping = false;
                 this.diving = false;

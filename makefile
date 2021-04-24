@@ -27,3 +27,7 @@ linecount:
 
 artstuff:
 	./dev/imagegen.sh
+
+.PHONY: imagegen
+imagegen:
+	./dev/imagegen.sh
