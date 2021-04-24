@@ -1,0 +1,8 @@
+{
+    "bitmapPath" : "assets/bitmaps/",
+    "bitmaps" : [
+
+        {"name": "player",  "path": "player.png"},
+        {"name": "enemies",  "path": "enemies.png"}
+    ]
+}
