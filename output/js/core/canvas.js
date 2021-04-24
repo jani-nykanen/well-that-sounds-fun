@@ -120,6 +120,37 @@ export class Canvas {
             c.restore();
         }
     }
+    drawRotatedScaledBitmapRegion(bmp, sx, sy, sw, sh, dx, dy, dw, dh, angle, centerx, centery, flip = Flip.None) {
+        if (bmp == null || sw <= 0 || sh <= 0)
+            return;
+        let c = this.ctx;
+        dx += this.translation.x;
+        dy += this.translation.y;
+        sx |= 0;
+        sy |= 0;
+        sw |= 0;
+        sh |= 0;
+        dx |= 0;
+        dy |= 0;
+        dw |= 0;
+        dh |= 0;
+        flip = flip | Flip.None;
+        c.save();
+        if ((flip & Flip.Horizontal) != 0) {
+            c.translate(dw, 0);
+            c.scale(-1, 1);
+            dx *= -1;
+        }
+        if ((flip & Flip.Vertical) != 0) {
+            c.translate(0, dh);
+            c.scale(1, -1);
+            dy *= -1;
+        }
+        c.translate(dx + centerx, dy + centery);
+        c.rotate(angle);
+        c.drawImage(bmp, sx, sy, sw, sh, -dw / 2, -dh / 2, dw, dh);
+        c.restore();
+    }
     drawText(font, str, dx, dy, xoff = 0.0, yoff = 0.0, center = false) {
         let cw = (font.width / 16) | 0;
         let ch = cw;

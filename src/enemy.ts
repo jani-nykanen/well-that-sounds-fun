@@ -16,19 +16,24 @@ export const getRandomEnemyType = () : Function => getEnemyType( (Math.random() 
 export class Enemy extends GameObject {
 
 
+    protected startPos : Vector2;
+
     protected scale : number;
     protected flip : Flip;
 
     protected globalSpeed : number;
 
 
-    constructor(x : number, y : number, row = 0, frame = 0, scale = 0.5) {
+    constructor(globalSpeed : number,
+        x : number, y : number, row = 0, frame = 0, scale = 0.5) {
 
         super(x, y);
 
+        this.startPos = this.pos.clone();
+
         this.scale = scale;
         this.flip = Flip.None;
-        this.globalSpeed = 1;
+        this.globalSpeed = globalSpeed;
 
         this.spr = new Sprite(256, 256);
         this.spr.setFrame(frame, row);
@@ -69,27 +74,40 @@ export class Enemy extends GameObject {
             this.spr.width * this.scale,
             this.spr.height * this.scale, this.flip);
     }
-
-
-    public setGlobalSpeed(speed = 1.0) {
-
-        this.globalSpeed = speed;
-    }
 }
 
 
 export class Duck extends Enemy {
 
 
-    constructor(x : number, y : number) {
+    private waveTimer : number;
 
-        super(x, y, 0);
+
+    constructor(globalSpeed : number, x : number, y : number) {
+
+        super(globalSpeed, x, y, 0);
+
+        this.waveTimer = 0;
     }
 
 
     protected updateAI(ev : GameEvent) {
 
-        this.spr.animate(this.spr.getRow(), 0, 3, 8, ev.step);
+        const WAVE_SPEED = 0.05;
+
+        this.waveTimer = (this.waveTimer + WAVE_SPEED * this.globalSpeed * ev.step) % (Math.PI * 2);
+
+        let speedMod = Math.sin(this.waveTimer) + 1.0;
+        this.target.y = -this.globalSpeed * speedMod * 1.50;
+
+        let frame = 0;
+        if (speedMod >= 1.25)
+            frame = 3;
+        else if (speedMod <= 0.75)
+            frame = 1;
+
+        this.spr.setFrame(frame, this.spr.getRow());
+        //this.spr.animate(this.spr.getRow(), 0, 3, 8, ev.step);
     }
 }
 
@@ -97,16 +115,28 @@ export class Duck extends Enemy {
 export class Dog extends Enemy {
 
 
-    constructor(x : number, y : number) {
+    private waveTimer : number;
 
-        super(x, y, 1);
 
-        this.friction.y = 0.1;
+    constructor(globalSpeed : number, x : number, y : number) {
+
+        super(globalSpeed, x, y, 1);
+
+        this.friction.y = 0.05;
+
+        this.speed.y *= 0.5;
         this.target.y *= 2.0;
+
+        this.waveTimer = (Math.random() > 0.5 ? 1 : 0) * Math.PI;
     }
 
 
     protected updateAI(ev : GameEvent) {
+
+        const WAVE_SPEED = 0.020;
+  
+        this.waveTimer = (this.waveTimer + WAVE_SPEED * this.globalSpeed * ev.step) % (Math.PI * 2);
+        this.pos.x = this.startPos.x + Math.sin(this.waveTimer) * (this.spr.width/2 * this.scale);
 
         this.spr.animate(this.spr.getRow(), 0, 3, 6, ev.step);
     }
@@ -116,13 +146,27 @@ export class Dog extends Enemy {
 export class Fly extends Enemy {
 
 
-    constructor(x : number, y : number) {
+    private dir : number;
 
-        super(x, y, 2);
+
+    constructor(globalSpeed : number, x : number, y : number) {
+
+        super(globalSpeed, x, y, 2);
+
+        this.dir = x > 270 ? -1 : 1;
+        this.target.x = globalSpeed * 2 * this.dir;
+        this.friction.x = 0.1;
     }
 
 
     protected updateAI(ev : GameEvent) {
+
+        if ((this.dir < 0 && this.pos.x < this.spr.width*this.scale) ||
+            (this.dir > 0 && this.pos.x > 540 - this.spr.width*this.scale)) {
+
+            this.dir *= -1;
+            this.target.x *= -1;
+        }
 
         this.spr.animate(this.spr.getRow(), 0, 3, 6, ev.step);
     }
@@ -136,9 +180,9 @@ export class Cat extends Enemy {
     private animDirection : number;
 
 
-    constructor(x : number, y : number) {
+    constructor(globalSpeed : number, x : number, y : number) {
 
-        super(x, y, 3);
+        super(globalSpeed, x, y, 3);
 
         this.animDirection = 0;
     }
@@ -168,15 +212,38 @@ export class Cat extends Enemy {
 export class Spikeball extends Enemy {
 
 
-    constructor(x : number, y : number) {
+    private angle : number;
+    private rotationDir : number;
 
-        super(x, y, 4, 4);
+
+    constructor(globalSpeed : number, x : number, y : number) {
+
+        super(globalSpeed, x, y, 4, 4);
+
+        this.rotationDir = Math.random() > 0.5 ? 1 : -1;
+        this.angle = Math.random() * Math.PI * 2;
     }
 
 
     protected updateAI(ev : GameEvent) {
 
-        
+        const ROTATION_SPEED = 0.025;
+
+        this.angle = (this.angle + this.rotationDir * this.globalSpeed * ROTATION_SPEED * ev.step) % (Math.PI * 2);
+    }
+
+
+    public draw(c : Canvas) {
+
+        if (!this.exist) return;
+
+        c.drawRotatedScaledBitmapRegion(c.getBitmap("enemies"),
+            1024, 1024, 256, 256, 
+            this.pos.x - this.spr.width/2 * this.scale,
+            this.pos.y - this.spr.height/2 * this.scale,
+            this.spr.width * this.scale,
+            this.spr.height * this.scale,
+            this.angle, this.spr.width/2, this.spr.height/2);
     }
 }
 

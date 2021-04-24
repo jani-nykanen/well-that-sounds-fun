@@ -1,15 +1,15 @@
 import { Canvas } from "./core/canvas.js";
 import { GameEvent, Scene } from "./core/core.js";
 import { Enemy, getEnemyType, getRandomEnemyType } from "./enemy.js";
-import { nextObject } from "./gameobject.js";
+import { Player } from "./player.js";
 
 
 export class GameScene implements Scene {
 
 
-    static ENEMY_SPAWN_TIME = 1200;
+    static ENEMY_SPAWN_TIME = 180;
 
-
+    private player : Player;
     private enemies : Array<Enemy>;
     private enemyTimer : number;
 
@@ -18,10 +18,11 @@ export class GameScene implements Scene {
 
     constructor(param : any, ev : GameEvent) {
 
+        this.player = new Player(270, 64);
         this.enemies = new Array<Enemy> ();
 
         this.enemyTimer = 0.0;
-        this.globalSpeed = 8.0;
+        this.globalSpeed = 2.0;
     }   
 
 
@@ -41,8 +42,7 @@ export class GameScene implements Scene {
         let x = 128 + Math.random() * (540 - 256);
         let y = 720;
 
-        let o = new (getRandomEnemyType().prototype.constructor) (x, y);
-        o.setGlobalSpeed(this.globalSpeed);
+        let o = new (getRandomEnemyType().prototype.constructor) (this.globalSpeed, x, y);
 
         if (index == -1) {
 
@@ -67,6 +67,8 @@ export class GameScene implements Scene {
 
             e.update(ev);
         }
+
+        this.player.update(ev);
     }
 
 
@@ -80,6 +82,8 @@ export class GameScene implements Scene {
 
             e.draw(c);
         }
+
+        this.player.draw(c);
     }
 
 

@@ -1,9 +1,11 @@
 import { getRandomEnemyType } from "./enemy.js";
+import { Player } from "./player.js";
 export class GameScene {
     constructor(param, ev) {
+        this.player = new Player(270, 64);
         this.enemies = new Array();
         this.enemyTimer = 0.0;
-        this.globalSpeed = 8.0;
+        this.globalSpeed = 2.0;
     }
     spawnEnemy() {
         let index = -1;
@@ -15,8 +17,7 @@ export class GameScene {
         }
         let x = 128 + Math.random() * (540 - 256);
         let y = 720;
-        let o = new (getRandomEnemyType().prototype.constructor)(x, y);
-        o.setGlobalSpeed(this.globalSpeed);
+        let o = new (getRandomEnemyType().prototype.constructor)(this.globalSpeed, x, y);
         if (index == -1) {
             this.enemies.push(o);
         }
@@ -32,6 +33,7 @@ export class GameScene {
         for (let e of this.enemies) {
             e.update(ev);
         }
+        this.player.update(ev);
     }
     redraw(c) {
         c.moveTo();
@@ -39,9 +41,10 @@ export class GameScene {
         for (let e of this.enemies) {
             e.draw(c);
         }
+        this.player.draw(c);
     }
     dispose() {
         return null;
     }
 }
-GameScene.ENEMY_SPAWN_TIME = 1200;
+GameScene.ENEMY_SPAWN_TIME = 180;
