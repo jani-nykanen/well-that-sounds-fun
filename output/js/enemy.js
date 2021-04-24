@@ -9,6 +9,7 @@ export const getRandomEnemyType = () => getEnemyType((Math.random() * ENEMY_TYPE
 export class Enemy extends GameObject {
     constructor(globalSpeed, x, y, row = 0, frame = 0, scale = 0.5) {
         super(x, y);
+        this.getHitbox = () => this.hitbox.clone();
         this.startPos = this.pos.clone();
         this.scale = scale;
         this.flip = Flip.None;
@@ -21,6 +22,11 @@ export class Enemy extends GameObject {
         this.dying = false;
         this.friction = new Vector2(0.5, 0.5);
         this.pos.y += this.spr.height / 2 * scale;
+        this.hitbox = new Vector2(64, 64);
+    }
+    die(ev) {
+        this.spr.animate(4, 0, 4, 5, ev.step);
+        return this.spr.getColumn() == 4;
     }
     updateAI(ev) { }
     updateLogic(ev) {
@@ -34,11 +40,18 @@ export class Enemy extends GameObject {
             return;
         c.drawScaledSprite(this.spr, c.getBitmap("enemies"), this.pos.x - this.spr.width / 2 * this.scale, this.pos.y - this.spr.height / 2 * this.scale, this.spr.width * this.scale, this.spr.height * this.scale, this.flip);
     }
+    kill(ev) {
+        if (this.dying)
+            return;
+        this.dying = true;
+        this.spr.setFrame(0, 4);
+    }
 }
 export class Duck extends Enemy {
     constructor(globalSpeed, x, y) {
         super(globalSpeed, x, y, 0);
         this.waveTimer = 0;
+        this.hitbox = new Vector2(56, 40);
     }
     updateAI(ev) {
         const WAVE_SPEED = 0.05;
@@ -61,6 +74,8 @@ export class Dog extends Enemy {
         this.speed.y *= 0.5;
         this.target.y *= 2.0;
         this.waveTimer = (Math.random() > 0.5 ? 1 : 0) * Math.PI;
+        this.scale = 0.60;
+        this.hitbox = new Vector2(48, 56);
     }
     updateAI(ev) {
         const WAVE_SPEED = 0.020;
@@ -75,6 +90,8 @@ export class Fly extends Enemy {
         this.dir = x > 270 ? -1 : 1;
         this.target.x = globalSpeed * 2 * this.dir;
         this.friction.x = 0.1;
+        this.scale = 0.60;
+        this.hitbox = new Vector2(64, 48);
     }
     updateAI(ev) {
         if ((this.dir < 0 && this.pos.x < this.spr.width * this.scale) ||
@@ -89,6 +106,7 @@ export class Cat extends Enemy {
     constructor(globalSpeed, x, y) {
         super(globalSpeed, x, y, 3);
         this.animDirection = 0;
+        this.hitbox = new Vector2(56, 40);
     }
     updateAI(ev) {
         if (this.animDirection == 0) {
@@ -109,6 +127,7 @@ export class Spikeball extends Enemy {
         super(globalSpeed, x, y, 4, 4);
         this.rotationDir = Math.random() > 0.5 ? 1 : -1;
         this.angle = Math.random() * Math.PI * 2;
+        this.hitbox = new Vector2(40, 40);
     }
     updateAI(ev) {
         const ROTATION_SPEED = 0.025;
@@ -117,6 +136,6 @@ export class Spikeball extends Enemy {
     draw(c) {
         if (!this.exist)
             return;
-        c.drawRotatedScaledBitmapRegion(c.getBitmap("enemies"), 1024, 1024, 256, 256, this.pos.x - this.spr.width / 2 * this.scale, this.pos.y - this.spr.height / 2 * this.scale, this.spr.width * this.scale, this.spr.height * this.scale, this.angle, this.spr.width / 2, this.spr.height / 2);
+        c.drawRotatedScaledBitmapRegion(c.getBitmap("enemies"), 1024, 1024, 256, 256, this.pos.x, this.pos.y, this.spr.width * this.scale, this.spr.height * this.scale, this.angle, this.spr.width / 2, this.spr.height / 2);
     }
 }

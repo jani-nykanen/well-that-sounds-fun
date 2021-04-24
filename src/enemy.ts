@@ -23,6 +23,8 @@ export class Enemy extends GameObject {
 
     protected globalSpeed : number;
 
+    protected hitbox : Vector2;
+
 
     constructor(globalSpeed : number,
         x : number, y : number, row = 0, frame = 0, scale = 0.5) {
@@ -47,6 +49,16 @@ export class Enemy extends GameObject {
         this.friction = new Vector2(0.5, 0.5);
 
         this.pos.y += this.spr.height/2 * scale;
+
+        this.hitbox = new Vector2(64, 64);
+    }
+
+
+    protected die(ev : GameEvent) : boolean {
+
+        this.spr.animate(4, 0, 4, 5, ev.step);
+
+        return this.spr.getColumn() == 4;
     }
 
 
@@ -74,6 +86,18 @@ export class Enemy extends GameObject {
             this.spr.width * this.scale,
             this.spr.height * this.scale, this.flip);
     }
+
+
+    public kill(ev : GameEvent) {
+
+        if (this.dying) return;
+        
+        this.dying = true;
+        this.spr.setFrame(0, 4);
+    }
+
+
+    public getHitbox = () : Vector2 => this.hitbox.clone();
 }
 
 
@@ -88,6 +112,8 @@ export class Duck extends Enemy {
         super(globalSpeed, x, y, 0);
 
         this.waveTimer = 0;
+
+        this.hitbox = new Vector2(56, 40);
     }
 
 
@@ -128,6 +154,10 @@ export class Dog extends Enemy {
         this.target.y *= 2.0;
 
         this.waveTimer = (Math.random() > 0.5 ? 1 : 0) * Math.PI;
+
+        this.scale = 0.60;
+    
+        this.hitbox = new Vector2(48, 56);
     }
 
 
@@ -156,6 +186,10 @@ export class Fly extends Enemy {
         this.dir = x > 270 ? -1 : 1;
         this.target.x = globalSpeed * 2 * this.dir;
         this.friction.x = 0.1;
+
+        this.scale = 0.60;
+
+        this.hitbox = new Vector2(64, 48);
     }
 
 
@@ -185,6 +219,8 @@ export class Cat extends Enemy {
         super(globalSpeed, x, y, 3);
 
         this.animDirection = 0;
+
+        this.hitbox = new Vector2(56, 40);
     }
 
 
@@ -222,6 +258,8 @@ export class Spikeball extends Enemy {
 
         this.rotationDir = Math.random() > 0.5 ? 1 : -1;
         this.angle = Math.random() * Math.PI * 2;
+
+        this.hitbox = new Vector2(40, 40);
     }
 
 
@@ -239,8 +277,8 @@ export class Spikeball extends Enemy {
 
         c.drawRotatedScaledBitmapRegion(c.getBitmap("enemies"),
             1024, 1024, 256, 256, 
-            this.pos.x - this.spr.width/2 * this.scale,
-            this.pos.y - this.spr.height/2 * this.scale,
+            this.pos.x,
+            this.pos.y,
             this.spr.width * this.scale,
             this.spr.height * this.scale,
             this.angle, this.spr.width/2, this.spr.height/2);

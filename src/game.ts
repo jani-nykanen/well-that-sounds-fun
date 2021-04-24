@@ -66,6 +66,7 @@ export class GameScene implements Scene {
         for (let e of this.enemies) {
 
             e.update(ev);
+            this.player.enemyCollision(e, ev);
         }
 
         this.player.update(ev);

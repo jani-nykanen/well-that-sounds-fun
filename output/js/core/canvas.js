@@ -146,7 +146,7 @@ export class Canvas {
             c.scale(1, -1);
             dy *= -1;
         }
-        c.translate(dx + centerx, dy + centery);
+        c.translate(dx, dy);
         c.rotate(angle);
         c.drawImage(bmp, sx, sy, sw, sh, -dw / 2, -dh / 2, dw, dh);
         c.restore();
