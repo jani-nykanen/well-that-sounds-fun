@@ -1,4 +1,5 @@
 import { Flip } from "./core/canvas.js";
+import { State } from "./core/types.js";
 import { getEnemyType } from "./enemy.js";
 import { Player } from "./player.js";
 export class GameScene {
@@ -12,6 +13,7 @@ export class GameScene {
         this.globalSpeed = 2.0;
         this.backgroundTimer = 0;
         this.backgroundFlip = false;
+        this.paused = false;
     }
     spawnEnemy(minIndex, maxIndex) {
         let index = -1;
@@ -33,8 +35,13 @@ export class GameScene {
     }
     update(ev) {
         const MIN_INDICES = [0, 3, 5];
-        const MAX_INDICES = [2, 4, 5];
+        const MAX_INDICES = [2, 4, 6];
         const SPIKEBALL_TIMER_DELAY = 60;
+        if (ev.getAction("start") == State.Pressed) {
+            this.paused = !this.paused;
+        }
+        if (this.paused)
+            return;
         for (let i = 0; i < this.enemyGenTimers.length; ++i) {
             if ((this.enemyGenTimers[i] -= this.globalSpeed * ev.step) <= 0) {
                 this.enemyGenTimers[i] += GameScene.ENEMY_SPAWN_TIME[i] +
@@ -75,6 +82,10 @@ export class GameScene {
             e.draw(c);
         }
         this.player.draw(c);
+        if (this.paused) {
+            c.setFillColor(0, 0, 0, 0.67);
+            c.fillRect(0, 0, c.width, c.height);
+        }
     }
     dispose() {
         return null;

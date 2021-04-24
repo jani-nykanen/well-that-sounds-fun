@@ -1,5 +1,6 @@
 import { Canvas, Flip } from "./core/canvas.js";
 import { GameEvent, Scene } from "./core/core.js";
+import { State } from "./core/types.js";
 import { Enemy, getEnemyType, getRandomEnemyType } from "./enemy.js";
 import { Player } from "./player.js";
 
@@ -19,6 +20,8 @@ export class GameScene implements Scene {
     private backgroundTimer : number;
     private backgroundFlip : boolean;
 
+    private paused : boolean;
+
 
     constructor(param : any, ev : GameEvent) {
 
@@ -33,6 +36,8 @@ export class GameScene implements Scene {
         this.globalSpeed = 2.0;
         this.backgroundTimer = 0;
         this.backgroundFlip = false;
+
+        this.paused = false;
     }   
 
 
@@ -70,8 +75,14 @@ export class GameScene implements Scene {
     public update(ev : GameEvent) {
 
         const MIN_INDICES = [0, 3, 5];
-        const MAX_INDICES = [2, 4, 5];
+        const MAX_INDICES = [2, 4, 6];
         const SPIKEBALL_TIMER_DELAY = 60;
+
+        if (ev.getAction("start") == State.Pressed) {
+
+            this.paused = !this.paused;
+        }
+        if (this.paused) return;
 
         for (let i = 0; i < this.enemyGenTimers.length; ++ i) {
 
@@ -136,6 +147,12 @@ export class GameScene implements Scene {
             e.draw(c);
         }
         this.player.draw(c);
+
+        if (this.paused) {
+
+            c.setFillColor(0, 0, 0, 0.67);
+            c.fillRect(0, 0, c.width, c.height);
+        }
     }
 
 

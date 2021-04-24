@@ -86,6 +86,8 @@ export class Player extends GameObject {
     private ghosts : Array<Ghost>;
     private ghostTimer : number;
 
+    private arrowWaveTimer : number;
+
 
     constructor(x : number, y : number) {
 
@@ -104,6 +106,8 @@ export class Player extends GameObject {
         this.friction = new Vector2(0.5, 0.5);
 
         this.hitbox = new Vector2(64, 80);
+    
+        this.arrowWaveTimer = 0.0;
     }
 
 
@@ -205,6 +209,9 @@ export class Player extends GameObject {
     private animate(ev : GameEvent) {
 
         const SPEED_Y_EPS = 2.0;
+        const ARROW_WAVE_SPEED = 0.15;
+
+        this.arrowWaveTimer = (this.arrowWaveTimer + ARROW_WAVE_SPEED * ev.step) % (Math.PI*2);
 
         if (this.flapping) {
 
@@ -276,11 +283,26 @@ export class Player extends GameObject {
 
     private baseDraw(c : Canvas, bmp : HTMLImageElement, offsetx = 0, offsety = 0) {
 
+        const ARROW_RANGE = 48;
+        const ARROW_AMPLITUDE = 8;
+
         c.drawScaledSprite(this.spr, bmp,
             offsetx + this.pos.x - this.spr.width/2 * this.scale, 
             offsety + this.pos.y - this.spr.height/2 * this.scale,
             this.spr.width*this.scale,
             this.spr.height*this.scale);
+
+        let arrowY : number;
+        if (this.pos.y < -ARROW_RANGE) {
+
+            arrowY = Math.sin(this.arrowWaveTimer) * ARROW_AMPLITUDE;
+
+            c.drawScaledSpriteFrame(this.spr, bmp, 2, 1,
+                offsetx + this.pos.x - this.spr.width/2 * this.scale, 
+                offsety + arrowY,
+                this.spr.width*this.scale,
+                this.spr.height*this.scale);
+        }
     }
 
 
