@@ -44,6 +44,8 @@ export class GameScene implements Scene {
     constructor(param : any, ev : GameEvent) {
 
         this.reset();
+
+        ev.audio.fadeInMusic(ev.getSample("noise"), 0.55, 1000);
     }   
 
 
@@ -153,7 +155,11 @@ export class GameScene implements Scene {
             if (this.monsterPos < -288) {
 
                 ev.transition.activate(true, TransitionEffectType.Fade, 1.0/30.0,
-                    ev => ev.changeScene(Ending), new RGBA(255, 255, 255));
+                    ev => {
+                        ev.audio.stopMusic();
+                        ev.changeScene(Ending);
+                    }, 
+                    new RGBA(255, 255, 255));
                 return;
             }
         }

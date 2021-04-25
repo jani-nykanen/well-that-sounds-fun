@@ -18,6 +18,8 @@
     "samplePath" : "assets/samples/",
     "samples" : [
 
+        {"name": "noise", "path": "noise.ogg"},
+
         {"name": "select", "path": "select.wav"},
         {"name": "start", "path": "start.wav"},
         {"name": "pause", "path": "pause.wav"},

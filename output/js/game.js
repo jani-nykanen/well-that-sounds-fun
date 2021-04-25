@@ -8,6 +8,7 @@ import { Player } from "./player.js";
 export class GameScene {
     constructor(param, ev) {
         this.reset();
+        ev.audio.fadeInMusic(ev.getSample("noise"), 0.55, 1000);
     }
     reset() {
         this.player = new Player(270, -32);
@@ -77,7 +78,10 @@ export class GameScene {
         if (this.monsterActive) {
             this.monsterPos -= 2 * this.globalSpeed * ev.step;
             if (this.monsterPos < -288) {
-                ev.transition.activate(true, TransitionEffectType.Fade, 1.0 / 30.0, ev => ev.changeScene(Ending), new RGBA(255, 255, 255));
+                ev.transition.activate(true, TransitionEffectType.Fade, 1.0 / 30.0, ev => {
+                    ev.audio.stopMusic();
+                    ev.changeScene(Ending);
+                }, new RGBA(255, 255, 255));
                 return;
             }
         }
