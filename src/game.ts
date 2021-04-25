@@ -45,7 +45,7 @@ export class GameScene implements Scene {
 
         this.reset();
 
-        ev.audio.fadeInMusic(ev.getSample("noise"), 0.60, 1000);
+        ev.audio.fadeInMusic(ev.getSample("noise"), 0.70, 1000);
     }   
 
 

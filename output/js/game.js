@@ -8,7 +8,7 @@ import { Player } from "./player.js";
 export class GameScene {
     constructor(param, ev) {
         this.reset();
-        ev.audio.fadeInMusic(ev.getSample("noise"), 0.55, 1000);
+        ev.audio.fadeInMusic(ev.getSample("noise"), 0.70, 1000);
     }
     reset() {
         this.player = new Player(270, -32);
