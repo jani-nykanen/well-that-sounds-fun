@@ -151,12 +151,13 @@ export class Canvas {
         c.drawImage(bmp, sx, sy, sw, sh, -dw / 2, -dh / 2, dw, dh);
         c.restore();
     }
-    drawText(font, str, dx, dy, xoff = 0.0, yoff = 0.0, center = false, scalex = 1, scaley = 1) {
+    drawText(font, str, dx, dy, xoff = 0.0, yoff = 0.0, center = false, scalex = 1, scaley = 1, wave = 0.0, amplitude = 0.0, period = 0.0) {
         let cw = (font.width / 16) | 0;
         let ch = cw;
         let x = dx;
         let y = dy;
         let c;
+        let yoffset;
         if (center) {
             dx -= ((str.length + 1) * (cw + xoff) * scalex) / 2.0;
             x = dx;
@@ -168,7 +169,8 @@ export class Canvas {
                 y += (ch + yoff) * scaley;
                 continue;
             }
-            this.drawScaledBitmapRegion(font, (c % 16) * cw, ((c / 16) | 0) * ch, cw, ch, x, y, cw * scalex, ch * scaley, Flip.None);
+            yoffset = Math.sin(wave + i * period) * amplitude;
+            this.drawScaledBitmapRegion(font, (c % 16) * cw, ((c / 16) | 0) * ch, cw, ch, x, y + yoffset, cw * scalex, ch * scaley, Flip.None);
             x += (cw + xoff) * scalex;
         }
     }

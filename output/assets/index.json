@@ -8,6 +8,10 @@
         {"name": "background",  "path": "background.png"},
         {"name": "font",  "path": "font.png"},
         {"name": "intro",  "path": "intro.png"},
+        {"name": "guide",  "path": "guide.png"},
+        {"name": "monster",  "path": "monster.png"},
+        {"name": "dog",  "path": "dog.png"},
+        {"name": "skull",  "path": "skull.png"},
         {"name": "enemies",  "path": "enemies.png"}
     ]
 }

@@ -281,7 +281,8 @@ export class Canvas {
 
     public drawText(font : HTMLImageElement, str : string, 
         dx : number, dy : number, 
-        xoff = 0.0, yoff = 0.0, center = false, scalex = 1, scaley = 1) {
+        xoff = 0.0, yoff = 0.0, center = false, scalex = 1, scaley = 1,
+        wave = 0.0, amplitude = 0.0, period = 0.0) {
 
         let cw = (font.width / 16) | 0;
         let ch = cw;
@@ -289,6 +290,8 @@ export class Canvas {
         let x = dx;
         let y = dy;
         let c : number;
+
+        let yoffset : number;
 
         if (center) {
 
@@ -306,11 +309,14 @@ export class Canvas {
                 continue;
             }
 
+            yoffset = Math.sin(wave + i * period) * amplitude;
+
             this.drawScaledBitmapRegion(
                 font, 
                 (c % 16) * cw, ((c/16)|0) * ch,
                 cw, ch, 
-                x, y, cw * scalex, ch * scaley, Flip.None);
+                x, y + yoffset, 
+                cw * scalex, ch * scaley, Flip.None);
 
             x += (cw + xoff) * scalex;
         }

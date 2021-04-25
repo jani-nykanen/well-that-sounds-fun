@@ -213,7 +213,7 @@ export class Player extends GameObject {
             return false;
         hbox = e.getHitbox();
         if (!e.isInvulnerable() &&
-            boxOverlay(this.pos, new Vector2(0, 0), this.hitbox, e.getPos().x - hbox.x / 2, e.getPos().y - hbox.y / 2 - STOMP_RANGE - Math.abs(this.speed.y), hbox.x, STOMP_RANGE + 2 * Math.abs(this.speed.y))) {
+            boxOverlay(this.pos, new Vector2(0, 0), this.hitbox, e.getPos().x - hbox.x / 2, e.getPos().y - hbox.y / 2 - STOMP_RANGE, hbox.x, STOMP_RANGE + Math.abs(this.speed.y) * ev.step)) {
             if (this.speed.y > JUMP_EPS) {
                 this.jumpTimer = JUMP_TIME;
                 e.kill(ev);

@@ -1,5 +1,4 @@
 import { Core } from "./core/core.js"
-import { GameScene } from "./game.js";
 import { Intro } from "./intro.js";
 
 

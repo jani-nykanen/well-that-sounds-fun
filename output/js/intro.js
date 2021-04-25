@@ -3,9 +3,9 @@ import { State } from "./core/types.js";
 import { RGBA, Vector2 } from "./core/vector.js";
 import { GameScene } from "./game.js";
 import { updateSpeedAxis } from "./gameobject.js";
-export class Intro extends GameScene {
+export class Intro {
     constructor(params, ev) {
-        super(params, ev);
+        this.dispose = () => null;
         this.logoWave = 0.0;
         this.animationPos = 0;
         this.animationSpeed = 0;
@@ -44,8 +44,8 @@ export class Intro extends GameScene {
         let bmpBunny = c.getBitmap("player");
         let logoScaleX;
         let logoScaleY;
-        logoScaleY = 1.0 - 0.25 * Math.sin(this.logoWave);
-        logoScaleX = 1.0 + 0.25 * Math.sin(this.logoWave);
+        logoScaleY = 1.0 - 0.125 * Math.sin(this.logoWave);
+        logoScaleX = 1.0 + 0.125 * Math.sin(this.logoWave);
         let logoY = 56 + BASE_HEIGHT - (BASE_HEIGHT * logoScaleY);
         c.clear(255, 255, 255);
         c.drawScaledBitmapRegion(bmpIntro, 0, 0, 512, 256, c.width / 2 - (BASE_WIDTH * logoScaleX) / 2, logoY, BASE_WIDTH * logoScaleX, BASE_HEIGHT * logoScaleY);
@@ -67,7 +67,7 @@ export class Intro extends GameScene {
         }
         c.drawText(c.getBitmap("font"), "©2021 JANI NYKäNEN", c.width / 2, c.height - 36, -20, 0, true, 0.5, 0.5);
         if (!this.animationPlaying) {
-            c.drawText(c.getBitmap("font"), "PRESS ENTER", c.width / 2, c.height - ENTER_Y_OFF, -28, 0, true, 1.0, 1.0);
+            c.drawText(c.getBitmap("font"), "PRESS ENTER", c.width / 2, c.height - ENTER_Y_OFF, -28, 0, true, 1.0, 1.0, this.logoWave, 8, Math.PI * 2 / 5);
         }
     }
 }

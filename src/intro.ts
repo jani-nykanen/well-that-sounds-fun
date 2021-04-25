@@ -1,5 +1,5 @@
 import { Canvas } from "./core/canvas.js";
-import { GameEvent } from "./core/core.js";
+import { GameEvent, Scene } from "./core/core.js";
 import { TransitionEffectType } from "./core/transition.js";
 import { State } from "./core/types.js";
 import { RGBA, Vector2 } from "./core/vector.js";
@@ -7,7 +7,7 @@ import { GameScene } from "./game.js";
 import { updateSpeedAxis } from "./gameobject.js";
 
 
-export class Intro extends GameScene {
+export class Intro implements Scene {
 
 
     private logoWave : number;
@@ -17,8 +17,6 @@ export class Intro extends GameScene {
 
 
     constructor(params : any, ev : GameEvent) {
-
-        super(params, ev);
 
         this.logoWave = 0.0;
         this.animationPos = 0;
@@ -33,7 +31,6 @@ export class Intro extends GameScene {
         const JUMP_FRICTION = 0.5;
 
         if (ev.transition.isActive()) return;
-
 
         if (!this.animationPlaying) {
 
@@ -77,8 +74,8 @@ export class Intro extends GameScene {
         let logoScaleX : number;
         let logoScaleY : number;
 
-        logoScaleY = 1.0 - 0.25 * Math.sin(this.logoWave);
-        logoScaleX = 1.0 + 0.25 * Math.sin(this.logoWave);
+        logoScaleY = 1.0 - 0.125 * Math.sin(this.logoWave);
+        logoScaleX = 1.0 + 0.125 * Math.sin(this.logoWave);
 
         let logoY = 56 + BASE_HEIGHT - (BASE_HEIGHT * logoScaleY);
 
@@ -115,8 +112,11 @@ export class Intro extends GameScene {
         if (!this.animationPlaying) {
 
             c.drawText(c.getBitmap("font"), "PRESS ENTER",
-            c.width/2, c.height-ENTER_Y_OFF, -28, 0, true, 1.0, 1.0)
+            c.width/2, c.height-ENTER_Y_OFF, -28, 0, true, 1.0, 1.0,
+                this.logoWave, 8, Math.PI*2/5);
         }
     }
 
+
+    public dispose = () : any => null;
 }
