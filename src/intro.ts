@@ -39,7 +39,7 @@ export class Intro implements Scene {
                 this.animationPlaying = true;
                 this.animationSpeed = -12.5;
 
-                ev.audio.playSample(ev.getSample("jump"), 0.70);
+                ev.audio.playSample(ev.getSample("jump"), 0.50);
             }
         }
         else {
@@ -49,6 +49,7 @@ export class Intro implements Scene {
 
             if (this.animationPos > 128) {
 
+                ev.audio.playSample(ev.getSample("well"), 0.60);
                 ev.transition.activate(true, TransitionEffectType.CirleIn, 1.0/30.0,
                     ev => {
 

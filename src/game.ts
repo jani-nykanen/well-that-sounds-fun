@@ -141,6 +141,8 @@ export class GameScene implements Scene {
 
                 this.depth = 100.0;
                 this.monsterActive = true;
+
+                ev.audio.playSample(ev.getSample("eat"), 0.50);
             }
         }
 

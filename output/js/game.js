@@ -71,6 +71,7 @@ export class GameScene {
             if (this.depth >= 100.0) {
                 this.depth = 100.0;
                 this.monsterActive = true;
+                ev.audio.playSample(ev.getSample("eat"), 0.50);
             }
         }
         if (this.monsterActive) {

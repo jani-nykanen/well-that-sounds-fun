@@ -183,6 +183,8 @@ export class Player extends GameObject {
             // Dive
             if (ev.downPress()) {
 
+                ev.audio.playSample(ev.getSample("dive"), 0.70);
+
                 if (this.diving)
                     this.ghostTimer = 0;
                 this.diving = true;
@@ -221,9 +223,16 @@ export class Player extends GameObject {
 
         this.arrowWaveTimer = (this.arrowWaveTimer + ARROW_WAVE_SPEED * ev.step) % (Math.PI*2);
 
+        let oldFrame = this.spr.getColumn();
         if (this.flapping) {
 
             this.spr.animate(1, 0, 1, 4, ev.step);
+
+            if (this.spr.getColumn() != oldFrame && oldFrame == 0) {
+
+                ev.audio.playSample(ev.getSample("flap"), 0.50);
+            }
+
             return;
         }
 

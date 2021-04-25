@@ -96,6 +96,7 @@ export class Player extends GameObject {
         else {
             // Dive
             if (ev.downPress()) {
+                ev.audio.playSample(ev.getSample("dive"), 0.70);
                 if (this.diving)
                     this.ghostTimer = 0;
                 this.diving = true;
@@ -122,8 +123,12 @@ export class Player extends GameObject {
         const SPEED_Y_EPS = 2.0;
         const ARROW_WAVE_SPEED = 0.15;
         this.arrowWaveTimer = (this.arrowWaveTimer + ARROW_WAVE_SPEED * ev.step) % (Math.PI * 2);
+        let oldFrame = this.spr.getColumn();
         if (this.flapping) {
             this.spr.animate(1, 0, 1, 4, ev.step);
+            if (this.spr.getColumn() != oldFrame && oldFrame == 0) {
+                ev.audio.playSample(ev.getSample("flap"), 0.50);
+            }
             return;
         }
         let frame = 0;
@@ -176,7 +181,7 @@ export class Player extends GameObject {
         this.dying = true;
         this.diving = false;
         this.spr.setFrame(0, 2);
-        ev.audio.playSample(ev.getSample("hurt"), 0.50);
+        ev.audio.playSample(ev.getSample("hurt"), 0.60);
         ev.shake(50, 16.0);
     }
     die(ev) {

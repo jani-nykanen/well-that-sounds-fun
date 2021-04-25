@@ -64,6 +64,7 @@ export class Enemy extends GameObject {
         if (!this.canBeKilled) {
             this.speed.y = KNOCKBACK;
             this.knockbackEvent();
+            ev.audio.playSample(ev.getSample("mushroom"), 0.50);
             return;
         }
         ev.audio.playSample(ev.getSample("kill"), 0.50);

@@ -20,13 +20,14 @@ export class Intro {
             if (ev.getAction("start") == State.Pressed) {
                 this.animationPlaying = true;
                 this.animationSpeed = -12.5;
-                ev.audio.playSample(ev.getSample("jump"), 0.70);
+                ev.audio.playSample(ev.getSample("jump"), 0.50);
             }
         }
         else {
             this.animationPos += this.animationSpeed * ev.step;
             this.animationSpeed = updateSpeedAxis(this.animationSpeed, BUNNY_GRAVITY, JUMP_FRICTION * ev.step);
             if (this.animationPos > 128) {
+                ev.audio.playSample(ev.getSample("well"), 0.60);
                 ev.transition.activate(true, TransitionEffectType.CirleIn, 1.0 / 30.0, ev => {
                     ev.changeScene(GameScene);
                     ev.transition.activate(false, TransitionEffectType.Fade, 1.0 / 30.0, null, new RGBA(0, 0, 0));

@@ -23,6 +23,11 @@
         {"name": "pause", "path": "pause.wav"},
         {"name": "kill", "path": "kill.wav"},
         {"name": "hurt", "path": "hurt.wav"},
+        {"name": "mushroom", "path": "mushroom.wav"},
+        {"name": "flap", "path": "flap.wav"},
+        {"name": "dive", "path": "dive.wav"},
+        {"name": "eat", "path": "eat.wav"},
+        {"name": "well", "path": "well.wav"},
         {"name": "jump", "path": "jump.wav"}
     ]
 }
