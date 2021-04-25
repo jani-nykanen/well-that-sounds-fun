@@ -59,6 +59,12 @@ export class TransitionEffectManager {
         let maxRadius;
         let radius;
         switch (this.effectType) {
+            case TransitionEffectType.Fade:
+                c.setFillColor(this.color.r, this.color.g, this.color.b, this.color.a);
+                c.setGlobalAlpha(t);
+                c.fillRect(0, 0, c.width, c.height);
+                c.setGlobalAlpha();
+                break;
             case TransitionEffectType.CirleIn:
                 maxRadius = Math.max(Math.hypot(this.center.x, this.center.y), Math.hypot(c.width - this.center.x, this.center.y), Math.hypot(c.width - this.center.x, c.height - this.center.y), Math.hypot(this.center.x, c.height - this.center.y));
                 radius = (1 - t) * maxRadius;

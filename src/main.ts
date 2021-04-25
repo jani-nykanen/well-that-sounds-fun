@@ -1,5 +1,6 @@
 import { Core } from "./core/core.js"
 import { GameScene } from "./game.js";
+import { Intro } from "./intro.js";
 
 
 window.onload = () : void => (new Core(540, 720))
@@ -8,5 +9,5 @@ window.onload = () : void => (new Core(540, 720))
     .addInputAction("back", "Escape", 8, 6)
     .addInputAction("select", "ShiftLeft", 4, 5)
     .loadAssets("assets/index.json")
-    .run(GameScene);
+    .run(Intro);
 

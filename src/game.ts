@@ -1,16 +1,21 @@
 import { Canvas, Flip } from "./core/canvas.js";
 import { GameEvent, Scene } from "./core/core.js";
+import { TransitionEffectType } from "./core/transition.js";
 import { State } from "./core/types.js";
-import { Enemy, getEnemyType, getRandomEnemyType } from "./enemy.js";
+import { RGBA } from "./core/vector.js";
+import { Enemy, getEnemyType, Mushroom } from "./enemy.js";
 import { Player } from "./player.js";
 
 
 export class GameScene implements Scene {
 
 
-    static ENEMY_SPAWN_TIME = [240, 300, 900];
-    static INITIAL_SPAWN_TIME = [0, 300, 1200];
-    static SPAWN_TIME_VARY = [60, 120, 300];
+    static READY_TIME = 60;
+
+
+    static ENEMY_SPAWN_TIME = [240, 360, 1200];
+    static INITIAL_SPAWN_TIME = [240, 1200, 2400];
+    static SPAWN_TIME_VARY = [60, 180, 499];
 
     private player : Player;
     private enemies : Array<Enemy>;
@@ -21,11 +26,22 @@ export class GameScene implements Scene {
     private backgroundFlip : boolean;
 
     private paused : boolean;
+    private readyTimer : number;
+    private readyPhase : number;
+
+    private depth : number;
+    private speedUpgradeTime : number;
 
 
     constructor(param : any, ev : GameEvent) {
 
-        this.player = new Player(270, 64);
+        this.reset();
+    }   
+
+
+    private reset() {
+
+        this.player = new Player(270, -32);
         this.enemies = new Array<Enemy> ();
         this.enemyGenTimers = new Array<number> (GameScene.ENEMY_SPAWN_TIME.length);
         for (let i = 0; i < this.enemyGenTimers.length; ++ i) {
@@ -37,8 +53,18 @@ export class GameScene implements Scene {
         this.backgroundTimer = 0;
         this.backgroundFlip = false;
 
+        this.depth = 0.0;
+        this.speedUpgradeTime = 0.0;
+
         this.paused = false;
-    }   
+
+        this.readyPhase = 2;
+        this.readyTimer = GameScene.READY_TIME;
+
+        // Initial enemy
+        this.enemies.push(
+            new Mushroom(this.globalSpeed, 270, 720));
+    }
 
 
     private spawnEnemy(minIndex : number, maxIndex: number) {
@@ -75,14 +101,27 @@ export class GameScene implements Scene {
     public update(ev : GameEvent) {
 
         const MIN_INDICES = [0, 3, 5];
-        const MAX_INDICES = [2, 4, 6];
+        const MAX_INDICES = [2, 4, 7];
         const SPIKEBALL_TIMER_DELAY = 60;
+        const SLOW_DOWN_SPEED = 0.2;
+        const DEPTH_SPEED = 0.005;
+        const SPEED_UPGRADE_TIME = 300;
+
+        if (ev.transition.isActive()) return;
 
         if (ev.getAction("start") == State.Pressed) {
 
             this.paused = !this.paused;
         }
         if (this.paused) return;
+
+        this.depth += DEPTH_SPEED * this.globalSpeed * ev.step;
+
+        if ((this.speedUpgradeTime += ev.step) >= SPEED_UPGRADE_TIME) {
+
+            this.speedUpgradeTime -= SPEED_UPGRADE_TIME;
+            this.globalSpeed += 0.1;
+        }
 
         for (let i = 0; i < this.enemyGenTimers.length; ++ i) {
 
@@ -104,10 +143,23 @@ export class GameScene implements Scene {
         for (let e of this.enemies) {
 
             e.update(ev);
+
             this.player.enemyCollision(e, ev);
         }
 
-        this.player.update(ev);
+        if (this.readyPhase == 0) {
+
+            this.player.update(ev);
+        }
+        else {
+
+            this.player.forceAnimateFlapping(ev);
+            if ((this.readyTimer -= ev.step) <= 0) {
+
+                this.readyTimer += GameScene.READY_TIME;
+                -- this.readyPhase;
+            }
+        }
 
         this.backgroundTimer += this.globalSpeed * ev.step;
         if (this.backgroundTimer >= 1024) {
@@ -115,14 +167,41 @@ export class GameScene implements Scene {
             this.backgroundTimer -= 1024;
             this.backgroundFlip = !this.backgroundFlip;
         }
+
+        // Slow down if the player is dying
+        if (this.player.isDying() && this.globalSpeed > 0) {
+
+            this.globalSpeed = Math.max(0, 
+                this.globalSpeed - SLOW_DOWN_SPEED * ev.step);
+        }
+
+        if (!this.player.doesExist()) {
+
+            ev.transition.activate(true, TransitionEffectType.Fade, 1.0/30.0,
+                (ev : GameEvent) => this.reset(), new RGBA(192, 192, 192));
+        }
+    }
+
+
+    private genDepthString() : String {
+
+        let s = String(Math.floor(this.depth*10)/10);
+        if (!s.includes(".")) s += ".0";
+
+        return s;
     }
 
 
     public redraw(c : Canvas) {
 
+        const READY_TEXT = ["GO!", "READY?"];
+
         c.moveTo();
 
         c.clear(192, 192, 192);
+
+        if (!this.paused)
+            c.applyShake();
 
         this.player.drawShadow(c);
         for (let e of this.enemies) {
@@ -148,10 +227,25 @@ export class GameScene implements Scene {
         }
         this.player.draw(c);
 
+        if (this.readyPhase > 0) {
+            
+            c.drawText(c.getBitmap("font"), READY_TEXT[this.readyPhase-1],
+                c.width/2, 128, -28, 0, true, 1.0, 1.0);
+        }
+
+        c.moveTo();
+        c.setFillColor(0, 0, 0, 0.33);
+        c.fillRect(0, 0, c.width, 32);
+        c.drawText(c.getBitmap("font"), "DEPTH: " + this.genDepthString() + "%",
+            c.width/2, 0, -22, -2, true, 0.5, 0.5);
+
         if (this.paused) {
 
             c.setFillColor(0, 0, 0, 0.67);
             c.fillRect(0, 0, c.width, c.height);
+
+            c.drawText(c.getBitmap("font"), "GAME PAUSED",
+                c.width/2, c.height/2 - 32, -28, 0, true);
         }
     }
 

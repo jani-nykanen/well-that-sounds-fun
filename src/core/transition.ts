@@ -102,6 +102,16 @@ export class TransitionEffectManager {
 
         switch (this.effectType) {
 
+        case TransitionEffectType.Fade:
+
+            c.setFillColor(this.color.r, this.color.g, this.color.b, this.color.a);
+
+            c.setGlobalAlpha(t);
+            c.fillRect(0, 0, c.width, c.height);
+            c.setGlobalAlpha();
+
+            break;
+
         case TransitionEffectType.CirleIn:
 
             maxRadius = Math.max(

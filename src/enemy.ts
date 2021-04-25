@@ -9,7 +9,7 @@ import { GameObject } from "./gameobject.js";
 const ENEMY_TYPES = () : Array<Function> => [
     Cat, Fly, Mushroom,
     Dog, Duck,  
-    Spikeball, Rat];
+    Spikeball, Rat, CoolSpikeball];
 
 export const getEnemyType = (index : number) : Function => ENEMY_TYPES()[clamp(index, 0, ENEMY_TYPES().length-1) | 0];
 
@@ -29,7 +29,7 @@ export class Enemy extends GameObject {
     protected hitbox : Vector2;
 
     protected canBeKilled : boolean;
-    protected harmful : boolean;
+    protected invulnerable : boolean;
 
 
     constructor(globalSpeed : number,
@@ -52,13 +52,13 @@ export class Enemy extends GameObject {
         this.exist = true;
         this.dying = false;
         this.canBeKilled = true;
-        this.harmful = false;
+        this.invulnerable = false;
 
         this.friction = new Vector2(0.5, 0.5);
 
         this.pos.y += this.spr.height/2 * scale;
 
-        this.hitbox = new Vector2(64, 64);
+        this.hitbox = new Vector2(64, 48);
     }
 
 
@@ -117,13 +117,13 @@ export class Enemy extends GameObject {
 
     public kill(ev : GameEvent) {
 
-        const KNOCKBACK = 4.0;
+        const KNOCKBACK = 8.0;
 
         if (this.dying) return;
 
         if (!this.canBeKilled) {
 
-            this.speed.y = KNOCKBACK * this.globalSpeed;
+            this.speed.y = KNOCKBACK;
             this.knockbackEvent();
 
             return;
@@ -135,6 +135,7 @@ export class Enemy extends GameObject {
 
 
     public getHitbox = () : Vector2 => this.hitbox.clone();
+    public isInvulnerable = () : boolean => this.invulnerable;
 }
 
 
@@ -150,15 +151,15 @@ export class Duck extends Enemy {
 
         this.waveTimer = 0;
 
-        this.hitbox = new Vector2(56, 40);
+        this.hitbox = new Vector2(56, 28);
     }
 
 
     protected updateAI(ev : GameEvent) {
 
-        const WAVE_SPEED = 0.05;
+        const WAVE_SPEED = 0.1;
 
-        this.waveTimer = (this.waveTimer + WAVE_SPEED * this.globalSpeed * ev.step) % (Math.PI * 2);
+        this.waveTimer = (this.waveTimer + WAVE_SPEED * ev.step) % (Math.PI * 2);
 
         let speedMod = Math.sin(this.waveTimer) + 1.0;
         this.target.y = -this.globalSpeed * speedMod * 1.50;
@@ -192,15 +193,15 @@ export class Dog extends Enemy {
 
         this.waveTimer = (Math.random() > 0.5 ? 1 : 0) * Math.PI;
 
-        this.hitbox = new Vector2(48, 56);
+        this.hitbox = new Vector2(48, 40);
     }
 
 
     protected updateAI(ev : GameEvent) {
 
-        const WAVE_SPEED = 0.020;
+        const WAVE_SPEED = 0.040;
   
-        this.waveTimer = (this.waveTimer + WAVE_SPEED * this.globalSpeed * ev.step) % (Math.PI * 2);
+        this.waveTimer = (this.waveTimer + WAVE_SPEED * ev.step) % (Math.PI * 2);
         this.pos.x = this.startPos.x + Math.sin(this.waveTimer) * (this.spr.width/2 * this.scale.x);
 
         this.spr.animate(this.spr.getRow(), 0, 3, 6, ev.step);
@@ -216,13 +217,15 @@ export class Fly extends Enemy {
 
     constructor(globalSpeed : number, x : number, y : number) {
 
+        const MOVE_SPEED = 4;
+
         super(globalSpeed, x, y, 2, 0, 0.60);
 
         this.dir = x > 270 ? -1 : 1;
-        this.target.x = globalSpeed * 2 * this.dir;
+        this.target.x = MOVE_SPEED * this.dir;
         this.friction.x = 0.1;
 
-        this.hitbox = new Vector2(64, 48);
+        this.hitbox = new Vector2(64, 36);
     }
 
 
@@ -253,7 +256,7 @@ export class Cat extends Enemy {
 
         this.animDirection = 0;
 
-        this.hitbox = new Vector2(56, 40);
+        this.hitbox = new Vector2(56, 28);
 
         this.waveTimer = (Math.random() > 0.5 ? 1 : 0) * Math.PI;
     }
@@ -261,9 +264,9 @@ export class Cat extends Enemy {
 
     protected updateAI(ev : GameEvent) {
 
-        const WAVE_SPEED = 0.015;
+        const WAVE_SPEED = 0.030;
   
-        this.waveTimer = (this.waveTimer + WAVE_SPEED * this.globalSpeed * ev.step) % (Math.PI * 2);
+        this.waveTimer = (this.waveTimer + WAVE_SPEED * ev.step) % (Math.PI * 2);
         this.pos.x = this.startPos.x + Math.sin(this.waveTimer) * (this.spr.width/2 * this.scale.x);
         
         if (this.animDirection == 0) {
@@ -297,7 +300,7 @@ export class Mushroom extends Enemy {
 
         super(globalSpeed, x, y, 5, 0, 0.60);
 
-        this.hitbox = new Vector2(64, 48);
+        this.hitbox = new Vector2(64, 40);
 
         this.canBeKilled = false;
         this.bumpTimer = 0.0;
@@ -350,6 +353,8 @@ export class Spikeball extends Enemy {
 
     constructor(globalSpeed : number, x : number, y : number) {
 
+        const MOVE_SPEED = 2.0;
+
         super(globalSpeed, x, y, 4, 4);
 
         this.rotationDir = Math.random() > 0.5 ? 1 : -1;
@@ -357,16 +362,16 @@ export class Spikeball extends Enemy {
 
         this.hitbox = new Vector2(40, 40);
 
-        this.target.x = this.rotationDir * this.globalSpeed;
+        this.target.x = this.rotationDir * MOVE_SPEED;
 
-        this.harmful = true;
         this.canBeKilled = false;
+        this.invulnerable = true;
     }
 
 
     protected updateAI(ev : GameEvent) {
 
-        const ROTATION_SPEED = 0.025;
+        const ROTATION_SPEED = 0.05;
 
 
         if ((this.rotationDir < 0 && this.pos.x < this.spr.width/2*this.scale.x) ||
@@ -377,7 +382,7 @@ export class Spikeball extends Enemy {
         }
 
         this.angle = 
-            (this.angle + this.rotationDir * this.globalSpeed * ROTATION_SPEED * ev.step) % (Math.PI * 2);
+            (this.angle + this.rotationDir * ROTATION_SPEED * ev.step) % (Math.PI * 2);
     }
 
 
@@ -413,6 +418,71 @@ export class Spikeball extends Enemy {
 }
 
 
+export class CoolSpikeball extends Enemy {
+
+
+    private angle : number;
+    private rotationDir : number;
+
+
+    constructor(globalSpeed : number, x : number, y : number) {
+
+        super(globalSpeed, x, y, 4, 4, 0.475);
+
+        this.rotationDir = -1;
+        this.angle = Math.random() * Math.PI * 2;
+
+        this.hitbox = new Vector2(40, 40);
+
+        this.canBeKilled = false;
+        this.invulnerable = true;
+
+        this.target.y *= 1.5;
+    }
+
+
+    protected updateAI(ev : GameEvent) {
+
+        const ROTATION_SPEED = 0.025;
+
+        this.angle = 
+            (this.angle + this.rotationDir * ROTATION_SPEED * ev.step) % (Math.PI * 2);
+    }
+
+
+    protected baseDraw(c : Canvas, bmp : HTMLImageElement, offsetx = 0, offsety = 0) {
+
+        c.drawRotatedScaledBitmapRegion(bmp,
+            1024, 1536, 256, 256, 
+            offsetx + this.pos.x,
+            offsety + this.pos.y,
+            this.spr.width * this.scale.x,
+            this.spr.height * this.scale.y,
+            this.angle, this.spr.width/2, this.spr.height/2);
+    }
+
+
+    public draw(c : Canvas) {
+
+        if (!this.exist) return;
+
+        this.baseDraw(c, c.getBitmap("enemies"));
+    }
+
+
+    public drawShadow(c : Canvas) {
+
+        const SHADOW_OFFSET = 12;
+
+        if (!this.exist) return;
+
+        this.baseDraw(c, c.getBitmap("enemiesBlack"), SHADOW_OFFSET, SHADOW_OFFSET);
+    }
+
+}
+
+
+
 export class Rat extends Enemy {
 
 
@@ -424,7 +494,7 @@ export class Rat extends Enemy {
 
         const MIN_Y = 256;
         const MAX_Y = 720-128;
-        const TARGET_SPEED = 8.0;
+        const TARGET_SPEED = 16.0;
 
         super(globalSpeed, x, y, 6, 0, 0.55);
 
@@ -442,11 +512,9 @@ export class Rat extends Enemy {
         this.pos.y = MIN_Y + (Math.random() * (MAX_Y - MIN_Y));
 
         this.friction.x = 0.15;
-        this.target.x = this.globalSpeed * this.dir * TARGET_SPEED;
+        this.target.x = this.dir * TARGET_SPEED;
 
-        this.harmful = true;
-
-        this.hitbox = new Vector2(56, 32);
+        this.hitbox = new Vector2(56, 20);
 
         this.flip = this.dir < 0 ? Flip.None : Flip.Horizontal;
 

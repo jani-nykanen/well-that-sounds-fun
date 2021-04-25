@@ -77,7 +77,10 @@ export class Player extends GameObject {
 
     private scale : number;
     private diving : boolean;
+    
     private hitbox : Vector2;
+    private hurtBox : Vector2;
+
     private jumpTimer : number;
     private bonusJumpTimer : number;
     private flapping : boolean;
@@ -105,7 +108,8 @@ export class Player extends GameObject {
 
         this.friction = new Vector2(0.5, 0.5);
 
-        this.hitbox = new Vector2(64, 80);
+        this.hitbox = new Vector2(64, 96);
+        this.hurtBox = new Vector2(48, 80);
     
         this.arrowWaveTimer = 0.0;
     }
@@ -189,8 +193,12 @@ export class Player extends GameObject {
                 this.target.y = DIVE_SPEED;
                 this.friction.y = 1.0;
                 this.jumpTimer = 0;
-                this.flapping = false;
-                this.flapTimer = 0;
+
+                if (this.flapping) {
+
+                    this.flapping = false;
+                    this.flapTimer = 0;
+                }
 
                 if (this.speed.y < 0.0)
                     this.speed.y = 0;
@@ -273,11 +281,41 @@ export class Player extends GameObject {
             this.pos.x = 540-this.hitbox.x/2;
         }
 
-        // TEMP
         if (this.pos.y > 720 + this.spr.height/2 * this.scale) {
 
-            this.pos = new Vector2(270, 64);
+            this.kill(ev);
         }
+    }
+
+
+    public forceAnimateFlapping(ev : GameEvent) {
+        
+        const MOVE_SPEED = 1.0;
+
+        this.spr.animate(1, 0, 1, 4, ev.step);
+
+        this.pos.y += MOVE_SPEED * ev.step;
+    }
+
+
+    private kill(ev : GameEvent) {
+
+        if (this.dying) return;
+
+        this.dying = true;
+        this.diving = false;
+        this.spr.setFrame(0, 2);
+
+        ev.shake(50, 16.0);
+    }
+
+
+    protected die(ev : GameEvent) : boolean {
+
+        this.updateGhosts(ev);
+
+        this.spr.animate(2, 0, 4, 5, ev.step);
+        return this.spr.getColumn() == 4;
     }
 
 
@@ -330,6 +368,7 @@ export class Player extends GameObject {
         const JUMP_TIME = 8;
         const DIVE_BONUS = 4;
         const JUMP_EPS = -0.5;
+        const STOMP_RANGE = 16.0;
 
         let hbox : Vector2;
 
@@ -337,11 +376,12 @@ export class Player extends GameObject {
             return false;
 
         hbox = e.getHitbox();
-            
-        if (boxOverlay(this.pos, new Vector2(0, 0), this.hitbox,
+  
+        if (!e.isInvulnerable() &&
+            boxOverlay(this.pos, new Vector2(0, 0), this.hitbox,
             e.getPos().x - hbox.x/2,
-            e.getPos().y - hbox.y,
-            hbox.x, hbox.y)) {
+            e.getPos().y - hbox.y/2 - STOMP_RANGE - Math.abs(this.speed.y),
+            hbox.x, STOMP_RANGE + 2 * Math.abs(this.speed.y))) {
 
             if (this.speed.y > JUMP_EPS) {
 
@@ -356,7 +396,18 @@ export class Player extends GameObject {
                 this.flapTimer = Player.FLAP_TIME;
                 this.flapping = false;
                 this.diving = false;
+
+                return true;
             }
+        }
+
+        if (boxOverlay(this.pos, new Vector2(0, 0), this.hurtBox,
+            e.getPos().x - hbox.x/2,
+            e.getPos().y - hbox.y/2,
+            hbox.x, hbox.y)) {
+
+            this.kill(ev);
+            return true;
         }
 
         return false;

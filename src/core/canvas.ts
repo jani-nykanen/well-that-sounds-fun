@@ -281,18 +281,18 @@ export class Canvas {
 
     public drawText(font : HTMLImageElement, str : string, 
         dx : number, dy : number, 
-        xoff = 0.0, yoff = 0.0, center = false) {
+        xoff = 0.0, yoff = 0.0, center = false, scalex = 1, scaley = 1) {
 
         let cw = (font.width / 16) | 0;
         let ch = cw;
 
         let x = dx;
         let y = dy;
-        let c;
+        let c : number;
 
         if (center) {
 
-            dx -= (str.length * (cw + xoff))/ 2.0 ;
+            dx -= ((str.length+1) * (cw + xoff) * scalex)/ 2.0 ;
             x = dx;
         }
 
@@ -302,17 +302,17 @@ export class Canvas {
             if (c == '\n'.charCodeAt(0)) {
 
                 x = dx;
-                y += ch + yoff;
+                y += (ch + yoff) * scaley;
                 continue;
             }
 
-            this.drawBitmapRegion(
+            this.drawScaledBitmapRegion(
                 font, 
                 (c % 16) * cw, ((c/16)|0) * ch,
                 cw, ch, 
-                x, y, Flip.None);
+                x, y, cw * scalex, ch * scaley, Flip.None);
 
-            x += cw + xoff;
+            x += (cw + xoff) * scalex;
         }
     }
 

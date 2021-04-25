@@ -151,25 +151,25 @@ export class Canvas {
         c.drawImage(bmp, sx, sy, sw, sh, -dw / 2, -dh / 2, dw, dh);
         c.restore();
     }
-    drawText(font, str, dx, dy, xoff = 0.0, yoff = 0.0, center = false) {
+    drawText(font, str, dx, dy, xoff = 0.0, yoff = 0.0, center = false, scalex = 1, scaley = 1) {
         let cw = (font.width / 16) | 0;
         let ch = cw;
         let x = dx;
         let y = dy;
         let c;
         if (center) {
-            dx -= (str.length * (cw + xoff)) / 2.0;
+            dx -= ((str.length + 1) * (cw + xoff) * scalex) / 2.0;
             x = dx;
         }
         for (let i = 0; i < str.length; ++i) {
             c = str.charCodeAt(i);
             if (c == '\n'.charCodeAt(0)) {
                 x = dx;
-                y += ch + yoff;
+                y += (ch + yoff) * scaley;
                 continue;
             }
-            this.drawBitmapRegion(font, (c % 16) * cw, ((c / 16) | 0) * ch, cw, ch, x, y, Flip.None);
-            x += cw + xoff;
+            this.drawScaledBitmapRegion(font, (c % 16) * cw, ((c / 16) | 0) * ch, cw, ch, x, y, cw * scalex, ch * scaley, Flip.None);
+            x += (cw + xoff) * scalex;
         }
     }
     drawScaledSpriteFrame(spr, bmp, column, row, dx, dy, dw, dh, flip = Flip.None) {
