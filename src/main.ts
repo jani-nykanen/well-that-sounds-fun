@@ -1,5 +1,5 @@
 import { Core } from "./core/core.js"
-import { Intro } from "./intro.js";
+import { AudioIntro } from "./audiointro.js";
 
 
 window.onload = () : void => (new Core(540, 720))
@@ -8,5 +8,5 @@ window.onload = () : void => (new Core(540, 720))
     .addInputAction("back", "Escape", 8, 6)
     .addInputAction("select", "ShiftLeft", 4, 5)
     .loadAssets("assets/index.json")
-    .run(Intro);
+    .run(AudioIntro);
 

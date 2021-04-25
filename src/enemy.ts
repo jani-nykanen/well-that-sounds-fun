@@ -128,6 +128,8 @@ export class Enemy extends GameObject {
 
             return;
         }
+
+        ev.audio.playSample(ev.getSample("kill"), 0.50);
         
         this.dying = true;
         this.spr.setFrame(0, 4);

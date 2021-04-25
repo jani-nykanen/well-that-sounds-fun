@@ -22,8 +22,8 @@ export class GameScene {
         this.depth = 0.0;
         this.speedUpgradeTime = 0.0;
         this.paused = false;
-        this.readyPhase = 2;
-        this.readyTimer = GameScene.READY_TIME;
+        this.readyPhase = 3;
+        this.readyTimer = 1; // GameScene.READY_TIME;
         // Initial enemy
         this.enemies.push(new Mushroom(this.globalSpeed, 270, 720));
         this.textWave = 0.0;
@@ -61,6 +61,7 @@ export class GameScene {
             return;
         this.textWave = (this.textWave + TEXT_WAVE_SPEED * ev.step) % (Math.PI * 2);
         if (ev.getAction("start") == State.Pressed) {
+            ev.audio.playSample(ev.getSample("pause"), 0.50);
             this.paused = !this.paused;
         }
         if (this.paused)
@@ -111,6 +112,9 @@ export class GameScene {
         else {
             this.player.forceAnimateFlapping(ev);
             if ((this.readyTimer -= ev.step) <= 0) {
+                if (this.readyPhase > 1) {
+                    ev.audio.playSample(ev.getSample(["start", "select"][this.readyPhase - 2]), 0.50);
+                }
                 this.readyTimer += GameScene.READY_TIME;
                 --this.readyPhase;
             }
@@ -168,7 +172,7 @@ export class GameScene {
             }
         }
         let bmpGuide = c.getBitmap("guide");
-        if (this.readyPhase > 0) {
+        if (this.readyPhase > 0 && this.readyPhase < 3) {
             c.drawText(c.getBitmap("font"), READY_TEXT[this.readyPhase - 1], c.width / 2, 128, -28, 0, true, 1.0, 1.0, this.readyTimer / GameScene.READY_TIME * Math.PI * 1.5, 8, Math.PI * 2 / READY_TEXT[this.readyPhase - 1].length);
         }
         let t;

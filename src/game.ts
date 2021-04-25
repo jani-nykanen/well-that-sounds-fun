@@ -66,8 +66,8 @@ export class GameScene implements Scene {
 
         this.paused = false;
 
-        this.readyPhase = 2;
-        this.readyTimer = GameScene.READY_TIME;
+        this.readyPhase = 3;
+        this.readyTimer = 1; // GameScene.READY_TIME;
 
         // Initial enemy
         this.enemies.push(
@@ -129,6 +129,7 @@ export class GameScene implements Scene {
 
         if (ev.getAction("start") == State.Pressed) {
 
+            ev.audio.playSample(ev.getSample("pause"), 0.50);
             this.paused = !this.paused;
         }
         if (this.paused) return;
@@ -203,6 +204,13 @@ export class GameScene implements Scene {
 
             this.player.forceAnimateFlapping(ev);
             if ((this.readyTimer -= ev.step) <= 0) {
+
+                if (this.readyPhase > 1) {
+
+                    ev.audio.playSample(ev.getSample(
+                        ["start", "select"][this.readyPhase-2]
+                    ), 0.50);
+                }
 
                 this.readyTimer += GameScene.READY_TIME;
                 -- this.readyPhase;
@@ -295,7 +303,7 @@ export class GameScene implements Scene {
         }
 
         let bmpGuide = c.getBitmap("guide");
-        if (this.readyPhase > 0) {
+        if (this.readyPhase > 0 && this.readyPhase < 3) {
             
             c.drawText(c.getBitmap("font"), READY_TEXT[this.readyPhase-1],
                 c.width/2, 128, -28, 0, true, 1.0, 1.0,

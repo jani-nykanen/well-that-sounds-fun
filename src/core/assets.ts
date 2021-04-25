@@ -1,3 +1,5 @@
+import { AudioPlayer } from "./audioplayer.js";
+import { AudioSample } from "./sample.js";
 import { KeyValuePair } from "./types.js";
 
 
@@ -37,16 +39,22 @@ export class AssetManager {
 
 
     private bitmaps : AssetContainer<HTMLImageElement>;
+    private samples : AssetContainer<AudioSample>;
     private loaded : number;
     private total : number;
+    
+    private readonly audio : AudioPlayer;
 
 
-    constructor() {
+    constructor(audio : AudioPlayer) {
 
         this.bitmaps = new AssetContainer<HTMLImageElement> ();
+        this.samples = new AssetContainer<AudioSample> ();
 
         this.total = 0;
         this.loaded = 0;
+
+        this.audio = audio;
     }
 
 
@@ -89,6 +97,27 @@ export class AssetManager {
     }
 
 
+    public loadSample(name : string, path : string) {
+
+        ++ this.total;
+
+        let xobj = new XMLHttpRequest();
+        xobj.open("GET", path, true);
+        xobj.responseType = "arraybuffer";
+
+        xobj.onload = () => {
+
+            this.audio.getContext().decodeAudioData(xobj.response, (data) => {
+                
+                ++ this.loaded;
+                this.samples.addAsset(name, new AudioSample(this.audio.getContext(), data));
+
+            });
+        }
+        xobj.send(null);
+    }
+
+
     public parseAssetIndexFile(url : string) {
 
         this.loadTextfile(url, "json", (s : string) => {
@@ -98,6 +127,12 @@ export class AssetManager {
             for (let o of data["bitmaps"]) {
 
                 this.loadBitmap(o["name"], path + o["path"]);
+            }
+
+            path = data["samplePath"];
+            for (let o of data["samples"]) {
+
+                this.loadSample(o["name"], path + o["path"]);
             }
         });
     }
@@ -112,6 +147,12 @@ export class AssetManager {
     public getBitmap(name : string) : HTMLImageElement {
 
         return this.bitmaps.getAsset(name);
+    }
+
+
+    public getSample(name : string) : AudioSample {
+
+        return this.samples.getAsset(name);
     }
 
 

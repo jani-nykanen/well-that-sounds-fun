@@ -38,6 +38,8 @@ export class Intro implements Scene {
 
                 this.animationPlaying = true;
                 this.animationSpeed = -12.5;
+
+                ev.audio.playSample(ev.getSample("jump"), 0.70);
             }
         }
         else {

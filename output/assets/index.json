@@ -13,5 +13,16 @@
         {"name": "dog",  "path": "dog.png"},
         {"name": "skull",  "path": "skull.png"},
         {"name": "enemies",  "path": "enemies.png"}
+    ],
+
+    "samplePath" : "assets/samples/",
+    "samples" : [
+
+        {"name": "select", "path": "select.wav"},
+        {"name": "start", "path": "start.wav"},
+        {"name": "pause", "path": "pause.wav"},
+        {"name": "kill", "path": "kill.wav"},
+        {"name": "hurt", "path": "hurt.wav"},
+        {"name": "jump", "path": "jump.wav"}
     ]
 }

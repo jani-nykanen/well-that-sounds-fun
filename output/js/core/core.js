@@ -1,19 +1,22 @@
 import { AssetManager } from "./assets.js";
+import { AudioPlayer } from "./audioplayer.js";
 import { Canvas } from "./canvas.js";
 import { InputManager } from "./input.js";
 import { TransitionEffectManager } from "./transition.js";
 export class GameEvent {
-    constructor(step, core, canvas, input, assets, transition) {
+    constructor(step, core, canvas, input, assets, transition, audio) {
         this.leftPress = () => this.input.leftPress();
         this.rightPress = () => this.input.rightPress();
         this.upPress = () => this.input.upPress();
         this.downPress = () => this.input.downPress();
+        this.getSample = (name) => this.assets.getSample(name);
         this.core = core;
         this.step = step;
         this.canvas = canvas;
         this.input = input;
         this.assets = assets;
         this.transition = transition;
+        this.audio = audio;
     }
     getStick() {
         return this.input.getStick();
@@ -30,7 +33,8 @@ export class GameEvent {
 }
 export class Core {
     constructor(canvasWidth, canvasHeight, frameSkip = 0) {
-        this.assets = new AssetManager();
+        this.audio = new AudioPlayer();
+        this.assets = new AssetManager(this.audio);
         this.canvas = new Canvas(canvasWidth, canvasHeight, this.assets);
         this.input = new InputManager();
         this.input.addAction("left", "ArrowLeft", 14)
@@ -38,7 +42,7 @@ export class Core {
             .addAction("right", "ArrowRight", 15)
             .addAction("down", "ArrowDown", 13),
             this.transition = new TransitionEffectManager();
-        this.ev = new GameEvent(frameSkip + 1, this, this.canvas, this.input, this.assets, this.transition);
+        this.ev = new GameEvent(frameSkip + 1, this, this.canvas, this.input, this.assets, this.transition, this.audio);
         this.timeSum = 0.0;
         this.oldTime = 0.0;
         this.initialized = false;

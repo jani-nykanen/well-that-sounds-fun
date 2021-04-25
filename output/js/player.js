@@ -176,6 +176,7 @@ export class Player extends GameObject {
         this.dying = true;
         this.diving = false;
         this.spr.setFrame(0, 2);
+        ev.audio.playSample(ev.getSample("hurt"), 0.50);
         ev.shake(50, 16.0);
     }
     die(ev) {

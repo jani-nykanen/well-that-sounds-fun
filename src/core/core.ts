@@ -1,6 +1,8 @@
 import { AssetManager } from "./assets.js";
+import { AudioPlayer } from "./audioplayer.js";
 import { Canvas } from "./canvas.js";
 import { InputManager } from "./input.js";
+import { AudioSample } from "./sample.js";
 import { TransitionEffectManager } from "./transition.js";
 import { State } from "./types.js";
 import { Vector2 } from "./vector.js";
@@ -11,6 +13,7 @@ export class GameEvent {
 
     public readonly step : number;
     public readonly transition : TransitionEffectManager;
+    public readonly audio : AudioPlayer;
 
     private readonly input : InputManager;
     private readonly assets : AssetManager;
@@ -20,7 +23,8 @@ export class GameEvent {
 
     constructor(step : number, core : Core, canvas : Canvas,
         input : InputManager, assets : AssetManager,
-        transition : TransitionEffectManager) {
+        transition : TransitionEffectManager,
+        audio : AudioPlayer) {
 
         this.core = core;
         this.step = step;
@@ -28,6 +32,7 @@ export class GameEvent {
         this.input = input;
         this.assets = assets;
         this.transition = transition;
+        this.audio = audio;
     }
 
 
@@ -59,6 +64,9 @@ export class GameEvent {
 
         this.canvas.shake(shakeTime, magnitude);
     }
+
+    
+    public getSample = (name : string) : AudioSample => this.assets.getSample(name);
 }
 
 
@@ -79,6 +87,7 @@ export class Core {
     private input : InputManager;
     private transition : TransitionEffectManager;
     private ev : GameEvent;
+    private audio : AudioPlayer;
 
     private activeScene : Scene;
     private activeSceneType : Function;
@@ -91,7 +100,8 @@ export class Core {
 
     constructor(canvasWidth : number, canvasHeight : number, frameSkip = 0) {
 
-        this.assets = new AssetManager();
+        this.audio = new AudioPlayer();
+        this.assets = new AssetManager(this.audio);
         this.canvas = new Canvas(canvasWidth, canvasHeight, this.assets);
 
         this.input = new InputManager();
@@ -101,9 +111,9 @@ export class Core {
             .addAction("down", "ArrowDown", 13),
 
         this.transition = new TransitionEffectManager();
-
+        
         this.ev = new GameEvent(frameSkip+1, this, this.canvas, 
-            this.input, this.assets, this.transition);
+            this.input, this.assets, this.transition, this.audio);
 
         this.timeSum = 0.0;
         this.oldTime = 0.0;
